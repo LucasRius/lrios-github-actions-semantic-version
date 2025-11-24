@@ -4,6 +4,7 @@ on:
         branches:
             - main
             - master
+    workflow_dispatch:
 permissions:
   contents: write # Para publicar uma GitHub release e fazer push da tag
   issues: write # Para comentar em issues
