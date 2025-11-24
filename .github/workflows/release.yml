@@ -1,6 +1,7 @@
 name: Release NPM package
 on:
     pull_request:
+        types: [closed]
         branches:
             - main
             - master
@@ -15,6 +16,7 @@ jobs:
     release:
         runs-on: ubuntu-latest
         name: Release
+        if: github.event.pull_request.merged == true
         steps:
             - name: Get Code
               uses: actions/checkout@v4
