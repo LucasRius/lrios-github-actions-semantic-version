@@ -1,0 +1,35 @@
+# .github/actions/semantic-release/action.yml
+name: "Semantic Release Action"
+description: "Executa o semantic-release para automatizar versionamento e criação de releases."
+
+inputs:
+  node-version:
+    description: "Versão do Node.js a ser usada. Recomenda-se 'lts/*'."
+    required: false
+    default: "lts/*"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Install dependencies
+      # Use npm install ou npm ci, dependendo do seu projeto.
+      # Usaremos clean-install como no seu workflow original.
+      run: npm clean-install
+      shell: bash
+
+    - name: Verify the integrity of provenance attestations
+      run: npm audit signatures
+      shell: bash
+
+    - name: Run Semantic Release
+      env:
+        # GITHUB_TOKEN é injetado automaticamente pelo GitHub Actions.
+        # Ele é necessário para criar a release e fazer o push da tag.
+        GITHUB_TOKEN: ${{ github.token }}
+      run: npx semantic-release
+      shell: bash
