@@ -1,0 +1,27 @@
+name: Release NPM package
+on:
+    pull_request:
+        branches:
+            - main
+            - master
+permissions:
+  contents: write # Para publicar uma GitHub release e fazer push da tag
+  issues: write # Para comentar em issues
+  pull-requests: write # Para comentar em pull requests
+  id-token: write # Para OIDC e trusted publishing
+
+jobs:
+    release:
+        runs-on: ubuntu-latest
+        name: Release
+        steps:
+            - name: Get Code
+              uses: actions/checkout@v4
+              with:
+                fetch-depth: 0
+            - name: Execute Semantic Release
+              uses: ./.github/actions/semantic-release 
+                # (Opcional) Você pode passar a versão do Node se não quiser usar o default 'lts/*'
+                # with:
+                #   node-version: '20'
+
