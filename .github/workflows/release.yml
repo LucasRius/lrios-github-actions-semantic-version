@@ -15,7 +15,6 @@ jobs:
     release:
         runs-on: ubuntu-latest
         name: Release
-        if: github.event.pull_request.merged == true
         steps:
             - name: Get Code
               uses: actions/checkout@v4
