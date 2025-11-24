@@ -2,15 +2,18 @@ name: "Semantic Release Action"
 description: "Executa o semantic-release para automatizar versionamento e criação de releases."
 
 inputs:
+  caching:
+    description: 'Whether to cache dependencies or not'
+    required: false
+    default: 'true'
   node-version:
     description: "Versão do Node.js a ser usada. Recomenda-se 'lts/*'."
     required: false
     default: "lts/*"
-  # 💡 Opcional: Adicionar um input para o cache key para maior controle
-  cache-key:
-    description: "Chave do cache para as dependências do npm."
-    required: false
-    default: "npm-${{ runner.os }}-${{ inputs.node-version }}-${{ hashFiles('package-lock.json') }}"
+outputs:
+  used-cache:
+    description: 'Whether the Cache was used'
+    value: ${{ steps.install.outputs.cache }}
 
 runs:
   using: "composite"
@@ -20,18 +23,20 @@ runs:
       with:
         node-version: ${{ inputs.node-version }}
 
-    # 1. 💾 Passo de Cache: Tenta restaurar o cache
-    - name: Restore npm cache
-      uses: actions/cache@v4 # Action de cache sendo usada dentro da sua composite action
+    - name: Cache dependencies
+      if: inputs.caching == 'true'
+      id: cache
+      uses: actions/cache@v4
       with:
-        path: ~/.npm # Caminho onde o npm armazena o cache
-        key: ${{ inputs.cache-key }}
-        restore-keys: |
-          npm-${{ runner.os }}-${{ inputs.node-version }}-
+        path: node_modules
+        key: deps-node-modules-${{ hashFiles('**/package-lock.json') }}
 
     - name: Install dependencies
-      # Use npm ci ou npm clean-install
-      run: npm clean-install # Este comando usará o cache se restaurado.
+      if: steps.cache.outputs.cache-hit != 'true' || inputs.caching != 'true'
+      id: install
+      run: |
+        npm ci
+        echo "cache=${{ inputs.caching }}" >> $GITHUB_OUTPUT
       shell: bash
 
     - name: Verify the integrity of provenance attestations
@@ -40,8 +45,6 @@ runs:
 
     - name: Run Semantic Release
       env:
-        # GITHUB_TOKEN é injetado automaticamente pelo GitHub Actions.
-        # Ele é necessário para criar a release e fazer o push da tag.
         GITHUB_TOKEN: ${{ github.token }}
       run: npx semantic-release
       shell: bash
